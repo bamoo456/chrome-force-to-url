@@ -1,0 +1,11 @@
+{
+    "manifest_version": 2,
+    "name": "Google extensions easy samle",
+    "description": "Show current page URL",
+    "version": "1.0",
+    "browser_action": {
+        "default_icon": "assets/icon.png",
+        "default_popup": "popup.html"
+    },
+    "permissions": ["tabs"]
+}

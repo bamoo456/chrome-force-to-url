@@ -1,0 +1,12 @@
+/*
+File:popup.css
+Author:SolinariWu
+Descript:Google Extensions Easy Sample-Show current page URL
+Date:2016/7/25
+Reference:https://developer.chrome.com/extensions
+          http://www.cnblogs.com/guogangj/p/3235703.html
+*/
+
+body {
+    width: 200px;
+}
