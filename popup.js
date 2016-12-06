@@ -1,14 +1,7 @@
-/*
-File:popup.html
-Author:SolinariWu
-Descript:Google Extensions Easy Sample-Show current page URL
-Date:2016/7/25
-Reference:http://www.cnblogs.com/guogangj/p/3235703.html
-          https://developer.chrome.com/extensions
-*/
-
-
 var IS_SCRIPT_STARTED = false;
+var targetUrl = 'https://www.uniair.com.tw/uniweb/b2c/cfresav01.aspx';
+var busyUrl = 'http://www.uniair.com.tw/uniweb/openpage/2017_Spring_busy/index.html';
+var targetTabsTimer = {};
 
 
 document.getElementById('startScript').onclick = function () {
@@ -21,66 +14,44 @@ document.getElementById('startScript').onclick = function () {
 document.getElementById('stopScript').onclick = function () {
     if (IS_SCRIPT_STARTED) {
         IS_SCRIPT_STARTED = false;
+        for (var i in targetTabsTimer) {
+            clearTimeout(targetTabsTimer[i]);
+        }
     }
 }
 
-var targetUrl = 'https://tw.yahoo.com/';
-var count = 0;
-
 function startScripts() {
-    periodlyUpdate();
+    chrome.tabs.query({
+        active: false
+    }, function (tabs) {
+        tabs.forEach(function (tab) {
+            if (tab.url === busyUrl) {
+                tryConnectTabToUrl(tab.id, targetUrl);
+            }
+        });
+    });
 }
 
-function periodlyUpdate() {
-    setTimeout(function () {
-        chrome.tabs.query({}, function (tabs) {
-            tabs.forEach(function (tab) {
-                if (tab.url === targetUrl) {
-                    console.log('---> try to update the url')
-                    chrome.tabs.sendRequest(tab.id, {
-                        action: "getDom"
-                    }, function (response) {
-                        console.log(response);
-                        console.log('----ready to update to yahoo');
-                        chrome.tabs.update(tab.id, {
-                            url: 'http://tw.yahoo.com'
-                        });
-                        // ready to next run
-                        if (IS_SCRIPT_STARTED) periodlyUpdate();
-                    });
-                }
+function tryConnectTabToUrl(tabId, url) {
+    targetTabsTimer[tabId] = setTimeout(function () {
+        chrome.tabs.get(tabId, function (tab) {
+            if (tab.url === url) return;
+
+            chrome.tabs.update(tabId, {
+                url: url
+            }, function () {
+                tryConnectTabToUrl(tabId, url);
             });
         });
     }, 1000);
 }
 
-
-
-
+// Init tabs ready for connecting
 document.addEventListener('DOMContentLoaded', function () {
-    for (var i=0; i< 2; i++) {
-        chrome.tabs.create({url: 'https://tw.yahoo.com', active: false});
+    for (var i = 0; i < 2; i++) {
+        chrome.tabs.create({
+            url: targetUrl,
+            active: false
+        });
     }
-    // chrome.tabs.getSelected(null, function (tab) {
-    //     // Send a request to the content script.
-    //     setTimeout(function () {
-    //         chrome.tabs.sendRequest(tab.id, {
-    //             action: "getDom"
-    //         }, function (response) {
-    //             console.log(response);
-    //         });
-    //     }, 3000)
-    // });
-    // chrome.tabs.query({
-    //     'active': true,
-    //     'lastFocusedWindow': true
-    // }, function (tabs) {
-    //     var url = tabs[0].url;
-    //     $("#msgLabel").text(url);
-    //     chrome.tabs.create({
-    //         url: url
-    //     }, function (tab) {
-    //         chrome.tabs.remove(tab.id);
-    //     });
-    // });
 });
